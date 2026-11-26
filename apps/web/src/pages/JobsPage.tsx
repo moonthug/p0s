@@ -4,10 +4,10 @@ import { Link } from 'wouter';
 
 import type { Job } from '@p0s/shared';
 
-import { JobStatus } from '@/components/JobStatus';
-import { Paper } from '@/components/Paper';
-import { useCancel, useJobs, usePreview, useReprint } from '@/hooks/queries';
-import { receiptTitle } from '@/lib/receipt';
+import { JobStatus } from '../components/JobStatus';
+import { Paper } from '../components/Paper';
+import { useCancel, useJobs, usePreview, useReprint } from '../hooks/queries';
+import { receiptTitle } from '../lib/receipt';
 
 const KIND_LABELS: Record<Job['kind'], string> = {
   receiptline: 'Receipt',

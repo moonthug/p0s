@@ -6,11 +6,11 @@ import { Sidequest } from 'sidequest';
 
 import { isReady, type Job, type JobCounts, type JobKind, type JobStatus, notReadyReason } from '@p0s/shared';
 
-import type { Database } from '@/db/Database';
-import { type JobRow, jobs } from '@/db/schema';
-import type { EventBus } from '@/EventBus';
-import { PrintJob } from '@/PrintJob';
-import type { Printer } from '@/printer';
+import type { Database } from './db/Database';
+import { type JobRow, jobs } from './db/schema';
+import type { EventBus } from './EventBus';
+import { PrintJob } from './PrintJob';
+import type { Printer } from './printer';
 
 export type EnqueueInput = {
   kind: JobKind;

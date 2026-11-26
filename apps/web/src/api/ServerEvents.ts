@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import type { Job, ServerEvent, StatusResponse } from '@p0s/shared';
 
-import { queryKeys } from '@/api/queryKeys';
+import { queryKeys } from './queryKeys';
 
 /**
  * Bridges the API's SSE stream into the TanStack Query cache, so every screen

@@ -1,10 +1,10 @@
-import type { Config } from '@/config';
-import { FakePrinter } from '@/printer/FakePrinter';
-import type { Printer } from '@/printer/types';
-import { UsbPrinter } from '@/printer/UsbPrinter';
+import type { Config } from '../config';
+import { FakePrinter } from './FakePrinter';
+import type { Printer } from './types';
+import { UsbPrinter } from './UsbPrinter';
 
-export { FakePrinter } from '@/printer/FakePrinter';
-export type { Printer } from '@/printer/types';
+export { FakePrinter } from './FakePrinter';
+export type { Printer } from './types';
 
 export const createPrinter = (cfg: Config): Printer =>
   cfg.PRINTER === 'fake'

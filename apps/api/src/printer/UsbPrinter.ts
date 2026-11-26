@@ -5,8 +5,8 @@ import { type Device, findByIds, type InEndpoint, type Interface, type OutEndpoi
 
 import type { PrinterStatus } from '@p0s/shared';
 
-import { DLE_EOT, decodeStatus, isStatusByte } from '@/printer/escposStatus';
-import { DISCONNECTED, type Printer, type PrinterEvents, sameStatus } from '@/printer/types';
+import { DLE_EOT, decodeStatus, isStatusByte } from './escposStatus';
+import { DISCONNECTED, type Printer, type PrinterEvents, sameStatus } from './types';
 
 export type UsbPrinterOptions = {
   vendorId: number;

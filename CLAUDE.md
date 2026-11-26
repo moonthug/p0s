@@ -10,6 +10,7 @@ pnpm dev                          # API (tsx watch) + web
 pnpm typecheck                    # all packages
 pnpm lint / pnpm format           # biome check / biome check --write
 pnpm --filter @p0s/api test:hardware   # calibration receipt on the real printer (never in CI)
+pnpm --filter @p0s/api db:seed        # one-shot: add the starter templates (skips existing ones)
 ```
 
 The API reads `apps/api/.env` (copy `.env.example`). `PRINTER=fake` runs without the hardware.
@@ -30,14 +31,16 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   middleware, then mounts one controller per area from `src/routes/` (`statusRoutes`, `printRoutes`, …). Each
   controller is a `Hono<AppEnv>` sub-app that gets services with `c.var.di.get('printQueue')`. Work that outlives
   the request (SSE) must resolve its services before the handler returns: the request scope is disposed then.
-- **The web app talks to the API through `ApiClient`** (`apps/web/src/api`), typed with `@p0s/shared`. Hono RPC
-  (`hc<AppType>`) doesn't work here: each package's `@/` alias would resolve against the importing package.
-  Live updates come from `ServerEvents`, which writes SSE events straight into the TanStack Query cache.
+- **The web app talks to the API through `ApiClient`** (`apps/web/src/api`), a class over Hono RPC
+  (`hc<AppType>` + `parseResponse`): requests and responses are typed from the API's own routes, so changing a
+  route breaks the web build. Keep controller routes chained so `AppType` carries them. Live updates come from
+  `ServerEvents`, which writes SSE events straight into the TanStack Query cache.
 - **A class lives in a file named after it** (`class PrintQueue` → `PrintQueue.ts`), enforced by the
   `biome-plugins/class-filename.grit` plugin. Other files are camelCase.
-- **Imports use `@/`** for anything in the same package (`@/routes/sse`, not `../routes/sse`). Biome rejects `../`.
-  Each package maps `@/*` to its own `src/*`. No `.js` suffixes (`moduleResolution: bundler`, run by `tsx`).
-- **Import order** (Biome): Node builtins → packages → `@p0s/*` → `@/` → relative, separated by blank lines.
+- **Relative imports, no path aliases.** The web app type-checks the API's source for `hc<AppType>`, and a
+  per-package alias like `@/` would resolve against the wrong package. No `.js` suffixes (`moduleResolution:
+  bundler`, run by `tsx`).
+- **Import order** (Biome): Node builtins → packages → `@p0s/*` → relative, separated by blank lines.
 - **Formatting** (Biome): single quotes, semicolons, 2-space indent, 120 columns, braces on every `if`/loop body.
 - **Space code into logical steps.** Biome has no rule for this, so follow it by hand:
   - a blank line before `return`, unless it's the first statement in its block;

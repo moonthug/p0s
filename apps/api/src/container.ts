@@ -1,12 +1,15 @@
 import type { InferdiHonoEnv } from '@inferdi/hono';
 import { Container } from '@inferdi/inferdi';
 
-import type { Config } from '@/config';
-import { Database } from '@/db/Database';
-import { EventBus } from '@/EventBus';
-import { PrintQueue, type PrintQueueOptions } from '@/PrintQueue';
-import { createPrinter } from '@/printer';
-import { ReceiptRenderer } from '@/ReceiptRenderer';
+import type { Config } from './config';
+import { Database } from './db/Database';
+import { EventBus } from './EventBus';
+import { ImageProcessor } from './images/ImageProcessor';
+import { PrintQueue, type PrintQueueOptions } from './PrintQueue';
+import { createPrinter } from './printer';
+import { ReceiptRenderer } from './ReceiptRenderer';
+import { TemplateRenderer } from './templates/TemplateRenderer';
+import { TemplateRepository } from './templates/TemplateRepository';
 
 /**
  * Composition root. Every service is a singleton (one printer, one queue), and InferDI
@@ -18,7 +21,10 @@ export const buildContainer = (cfg: Config) =>
     .registerFactory('database', (c) => new Database(c.get('config').DB_PATH))
     .registerFactory('eventBus', () => new EventBus())
     .registerFactory('printer', (c) => createPrinter(c.get('config')))
+    .registerFactory('imageProcessor', () => new ImageProcessor())
     .registerFactory('renderer', (c) => new ReceiptRenderer({ encoding: c.get('config').ENCODING }))
+    .registerClass('templateRepository', TemplateRepository, ['database'])
+    .registerFactory('templateRenderer', () => new TemplateRenderer())
     .registerFactory('printQueueOptions', (c): PrintQueueOptions => {
       const { DB_PATH, JOB_MAX_WAIT, QUEUE_DASHBOARD_PORT } = c.get('config');
 

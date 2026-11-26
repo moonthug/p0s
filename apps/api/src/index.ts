@@ -1,5 +1,5 @@
-import { loadConfig } from '@/config';
-import { Server } from '@/Server';
+import { loadConfig } from './config';
+import { Server } from './Server';
 
 const server = new Server(loadConfig());
 await server.start();

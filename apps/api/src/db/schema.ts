@@ -22,3 +22,14 @@ export const jobs = sqliteTable('jobs', {
 });
 
 export type JobRow = typeof jobs.$inferSelect;
+
+export const templates = sqliteTable('templates', {
+  name: text('name').primaryKey(),
+  title: text('title').notNull(),
+  body: text('body').notNull(),
+  sample: text('sample', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type TemplateRow = typeof templates.$inferSelect;

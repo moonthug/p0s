@@ -1,8 +1,8 @@
 import type { Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
 
-import type { AppEnv } from '@/container';
-import type { SequencedEvent } from '@/EventBus';
+import type { AppEnv } from '../container';
+import type { SequencedEvent } from '../EventBus';
 
 const KEEPALIVE_MS = 15_000;
 

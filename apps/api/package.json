@@ -11,7 +11,8 @@
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:hardware": "tsx scripts/testPrint.ts"
+    "test:hardware": "tsx scripts/testPrint.ts",
+    "db:seed": "tsx --env-file-if-exists=.env scripts/seedTemplates.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.11",

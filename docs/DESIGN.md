@@ -11,7 +11,7 @@ Check npm for a maintained library before hand-rolling anything. Hand-rolled pie
 | -------------------------------------- | ----------------------------------------------------------------------------------------- |
 | HTTP                                   | `hono`, `@hono/node-server`, `@hono/zod-validator`, Hono `streamSSE`                      |
 | Dependency injection                   | `@inferdi/inferdi` + `@inferdi/hono` (request scope on `c.var.di`)                        |
-| Validation / shared types              | `zod` (in `packages/shared`); web uses a typed `ApiClient` class                          |
+| Validation / shared types              | `zod` (in `packages/shared`); web `ApiClient` class over Hono RPC `hc<AppType>`           |
 | Receipt markup → ESC/POS + SVG preview | `receiptline`                                                                             |
 | Job queue                              | `sidequest` + `@sidequest/sqlite-backend` (same SQLite file; built-in dashboard)          |
 | Persistence (history, templates)       | `drizzle-orm` + `better-sqlite3`, migrations via `drizzle-kit`                            |

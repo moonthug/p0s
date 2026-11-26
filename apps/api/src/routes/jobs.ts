@@ -2,8 +2,8 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
-import type { AppEnv } from '@/container';
-import { streamEvents } from '@/routes/sse';
+import type { AppEnv } from '../container';
+import { streamEvents } from './sse';
 
 const ListQuery = z.object({ limit: z.coerce.number().int().positive().max(500).optional() });
 

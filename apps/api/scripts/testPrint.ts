@@ -4,8 +4,8 @@
  */
 import { isReady, notReadyReason } from '@p0s/shared';
 
-import { UsbPrinter } from '@/printer/UsbPrinter';
-import { ReceiptRenderer } from '@/ReceiptRenderer';
+import { UsbPrinter } from '../src/printer/UsbPrinter';
+import { ReceiptRenderer } from '../src/ReceiptRenderer';
 
 const doc = `
 ^^^p0s

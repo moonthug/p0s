@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 import type { PrinterStatus } from '@p0s/shared';
 import { isReady } from '@p0s/shared';
 
-import { DISCONNECTED, type Printer, type PrinterEvents, sameStatus } from '@/printer/types';
+import { DISCONNECTED, type Printer, type PrinterEvents, sameStatus } from './types';
 
 export type FakeFault = 'paper-out' | 'cover-open' | 'offline' | 'disconnected' | null;
 

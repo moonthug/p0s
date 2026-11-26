@@ -1,0 +1,10 @@
+import { ApiError } from '../api/ApiError';
+
+/** A message fit to show: the API's own words when it gave some, otherwise the fallback. */
+export function errorMessage(error: unknown, fallback: string): string | null {
+  if (!error) {
+    return null;
+  }
+
+  return error instanceof ApiError ? error.message : fallback;
+}

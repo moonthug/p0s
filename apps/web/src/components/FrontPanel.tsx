@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-import type { PrinterState } from '@/lib/printerState';
+import type { PrinterState } from '../lib/printerState';
 
 type LedProps = { label: string; colour: string; on: boolean; blink?: boolean };
 

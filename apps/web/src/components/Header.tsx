@@ -1,11 +1,13 @@
 import { Link } from 'wouter';
 
-import { FrontPanel } from '@/components/FrontPanel';
-import { useStatus } from '@/hooks/queries';
-import { describePrinter } from '@/lib/printerState';
+import { useStatus } from '../hooks/queries';
+import { describePrinter } from '../lib/printerState';
+import { FrontPanel } from './FrontPanel';
 
 const NAV = [
   { href: '/', label: 'Compose' },
+  { href: '/quick', label: 'Quick print' },
+  { href: '/templates', label: 'Templates' },
   { href: '/jobs', label: 'Jobs' },
 ];
 

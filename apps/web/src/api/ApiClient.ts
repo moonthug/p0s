@@ -1,61 +1,136 @@
-import type { Job, PrintRequest, StatusResponse } from '@p0s/shared';
+import { type ClientResponse, DetailedError, hc, parseResponse } from 'hono/client';
 
-import { ApiError } from '@/api/ApiError';
+import type { AppType } from '@p0s/api';
+import type { ImageMode, TemplateVars } from '@p0s/shared';
 
-/** Typed client for the p0s API, reached through the same-origin `/api` proxy. */
+import { ApiError } from './ApiError';
+
+type Client = ReturnType<typeof hc<AppType>>;
+
+export type ImageUploadOptions = {
+  mode: ImageMode;
+  /** Printed width as a percentage of the paper width */
+  width: number;
+  rotate: 0 | 90 | 180 | 270;
+  force?: boolean;
+};
+
+export type TemplateInput = { title: string; body: string; sample: TemplateVars };
+
+/** Multipart fields are strings on the wire. */
+function imageForm(image: File, options: ImageUploadOptions) {
+  return {
+    image,
+    mode: options.mode,
+    width: String(options.width),
+    rotate: String(options.rotate),
+    force: options.force ? 'true' : 'false',
+  } as const;
+}
+
+/**
+ * The p0s API, reached through the same-origin `/api` proxy. Requests and responses are
+ * typed from the API's own routes via Hono RPC, so a route change breaks the build here.
+ */
 export class ApiClient {
-  constructor(private readonly baseUrl: string = '/api') {}
+  private readonly client: Client;
 
-  status(): Promise<StatusResponse> {
-    return this.json('/status');
+  constructor(private readonly baseUrl: string = `${window.location.origin}/api`) {
+    this.client = hc<AppType>(baseUrl);
   }
 
-  jobs(limit: number = 100): Promise<Job[]> {
-    return this.json(`/jobs?limit=${limit}`);
+  status() {
+    return this.call(this.client.status.$get());
   }
 
-  print(request: PrintRequest): Promise<Job> {
-    return this.json('/print', { method: 'POST', body: JSON.stringify(request) });
+  jobs(limit: number = 100) {
+    return this.call(this.client.jobs.$get({ query: { limit: String(limit) } }));
   }
 
-  reprint(id: string): Promise<Job> {
-    return this.json(`/jobs/${id}/reprint`, { method: 'POST' });
+  print(doc: string) {
+    return this.call(this.client.print.$post({ json: { doc } }));
+  }
+
+  reprint(id: string) {
+    return this.call(this.client.jobs[':id'].reprint.$post({ param: { id } }));
   }
 
   async cancel(id: string): Promise<void> {
-    await this.json(`/jobs/${id}/cancel`, { method: 'POST' });
+    await this.call(this.client.jobs[':id'].cancel.$post({ param: { id } }));
   }
 
   /** Renders a ReceiptLine document to SVG markup. */
-  async preview(request: PrintRequest, signal?: AbortSignal): Promise<string> {
-    const res = await this.request('/preview', { method: 'POST', body: JSON.stringify(request), signal });
+  preview(doc: string, signal?: AbortSignal): Promise<string> {
+    return this.call(this.client.preview.$post({ json: { doc } }, { init: { signal } }));
+  }
 
-    return res.text();
+  printText(text: string) {
+    return this.call(this.client.print.text.$post({ json: { text } }));
+  }
+
+  previewText(text: string, signal?: AbortSignal): Promise<string> {
+    return this.call(this.client.preview.text.$post({ json: { text } }, { init: { signal } }));
+  }
+
+  printImage(image: File, options: ImageUploadOptions) {
+    return this.call(this.client.print.image.$post({ form: imageForm(image, options) }));
+  }
+
+  previewImage(image: File, options: ImageUploadOptions, signal?: AbortSignal) {
+    return this.call(this.client.preview.image.$post({ form: imageForm(image, options) }, { init: { signal } }));
+  }
+
+  templates() {
+    return this.call(this.client.templates.$get());
+  }
+
+  template(name: string) {
+    return this.call(this.client.templates[':name'].$get({ param: { name } }));
+  }
+
+  createTemplate(name: string, input: TemplateInput) {
+    return this.call(this.client.templates.$post({ json: { name, ...input } }));
+  }
+
+  updateTemplate(name: string, input: TemplateInput) {
+    return this.call(this.client.templates[':name'].$put({ param: { name }, json: input }));
+  }
+
+  async deleteTemplate(name: string): Promise<void> {
+    await this.call(this.client.templates[':name'].$delete({ param: { name } }));
+  }
+
+  printTemplate(name: string, vars?: TemplateVars) {
+    return this.call(this.client.templates[':name'].print.$post({ param: { name }, json: { vars } }));
+  }
+
+  /** Renders an unsaved template body with the given values, for the editor's live preview. */
+  previewTemplateDraft(body: string, vars: TemplateVars, signal?: AbortSignal): Promise<string> {
+    return this.call(this.client.templates.preview.$post({ json: { body, vars } }, { init: { signal } }));
+  }
+
+  /** Absolute URL of the API, for "use from scripts" snippets. */
+  url(path: string): string {
+    return `${this.baseUrl}${path}`;
   }
 
   eventsUrl(): string {
     return `${this.baseUrl}/events`;
   }
 
-  private async json<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await this.request(path, init);
+  /** Parses the success body (typed by the route), or throws an ApiError carrying the API's `{ error }` message. */
+  private async call<R extends ClientResponse<unknown>>(request: Promise<R>): ReturnType<typeof parseResponse<R>> {
+    try {
+      return await parseResponse(request);
+    } catch (err) {
+      if (err instanceof DetailedError) {
+        const body = err.detail?.data as { error?: string } | undefined;
 
-    return (await res.json()) as T;
-  }
+        throw new ApiError(Number(err.statusCode), body?.error ?? err.message);
+      }
 
-  private async request(path: string, init: RequestInit = {}): Promise<Response> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      ...init,
-      headers: { 'content-type': 'application/json', ...init.headers },
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { error?: string } | null;
-
-      throw new ApiError(res.status, body?.error ?? `Request failed (${res.status})`);
+      throw err;
     }
-
-    return res;
   }
 }
 

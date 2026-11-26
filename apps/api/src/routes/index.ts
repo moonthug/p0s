@@ -1,5 +1,6 @@
-export { eventRoutes } from '@/routes/events';
-export { jobRoutes } from '@/routes/jobs';
-export { previewRoutes } from '@/routes/preview';
-export { printRoutes } from '@/routes/print';
-export { statusRoutes } from '@/routes/status';
+export { eventRoutes } from './events';
+export { jobRoutes } from './jobs';
+export { previewRoutes } from './preview';
+export { printRoutes } from './print';
+export { statusRoutes } from './status';
+export { templateRoutes } from './templates';

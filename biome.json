@@ -34,8 +34,6 @@
               ":BLANK_LINE:",
               "@p0s/**",
               ":BLANK_LINE:",
-              ":ALIAS:",
-              ":BLANK_LINE:",
               ":PATH:"
             ]
           }
@@ -47,17 +45,6 @@
     "rules": {
       "preset": "recommended",
       "style": {
-        "noRestrictedImports": {
-          "level": "error",
-          "options": {
-            "patterns": [
-              {
-                "group": ["../**"],
-                "message": "Use @/ imports instead of parent-relative paths."
-              }
-            ]
-          }
-        },
         "useBlockStatements": "error",
         "useFilenamingConvention": {
           "level": "error",

@@ -1,8 +1,8 @@
 import { type ServerType, serve } from '@hono/node-server';
 
-import { createApp } from '@/app';
-import type { Config } from '@/config';
-import { type AppContainer, buildContainer } from '@/container';
+import { createApp } from './app';
+import type { Config } from './config';
+import { type AppContainer, buildContainer } from './container';
 
 /** Owns the process lifecycle: builds the container, starts the hardware and queue, serves HTTP. */
 export class Server {

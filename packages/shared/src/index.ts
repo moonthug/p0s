@@ -71,3 +71,44 @@ export type StatusResponse = {
 
 /** POST /print, /print/raw, /jobs/:id/reprint */
 export type PrintRequest = { doc: string };
+
+/** How an image is turned into black and white: dithered (photos) or thresholded (logos, text, QR codes). */
+export const ImageMode = z.enum(['auto', 'photo', 'line']);
+export type ImageMode = z.infer<typeof ImageMode>;
+
+/** POST /preview/image */
+export type ImagePreview = {
+  svg: string;
+  /** The mode actually used (auto resolves to photo or line) */
+  mode: Exclude<ImageMode, 'auto'>;
+  lengthCm: number;
+  /** Longer than the guard allows; printing needs `force` */
+  tooLong: boolean;
+};
+
+/** A template name: lowercase letters, digits and dashes, used in URLs (`/templates/daily-briefing/print`). */
+export const TemplateName = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and dashes');
+
+export type TemplateVars = Record<string, unknown>;
+
+export type Template = {
+  name: string;
+  title: string;
+  /** ReceiptLine with Mustache tags */
+  body: string;
+  /** Example values, used for the preview and as the form's starting values */
+  sample: TemplateVars;
+  createdAt: number;
+  updatedAt: number;
+};
+
+/**
+ * A variable found in a template body, so the UI can build a form for it.
+ * - text: `{{name}}` or `{{{name}}}`
+ * - list: a section that repeats over items, e.g. `{{#todos}}{{.}}{{/todos}}`
+ * - flag: a section shown or hidden, e.g. `{{#urgent}}…{{/urgent}}`
+ */
+export type TemplateVariable = { name: string; kind: 'text' | 'list' | 'flag' };
+
+export type TemplateDetail = Template & { variables: TemplateVariable[] };
+export { templateVariables } from './templateVariables';
