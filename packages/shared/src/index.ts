@@ -1,0 +1,73 @@
+import { z } from 'zod';
+
+export const PrinterStatus = z.object({
+  /** USB device present and claimed */
+  connected: z.boolean(),
+  /** Printer reports itself online (not in an error/offline state) */
+  online: z.boolean(),
+  coverOpen: z.boolean(),
+  paperNearEnd: z.boolean(),
+  paperOut: z.boolean(),
+  /** Cutter jam, head overheat, or other error condition */
+  error: z.boolean(),
+});
+export type PrinterStatus = z.infer<typeof PrinterStatus>;
+
+/** Printer can accept a job right now. */
+export const isReady = (s: PrinterStatus) => s.connected && s.online && !s.coverOpen && !s.paperOut && !s.error;
+
+/** Human-readable reason the printer isn't ready, or null if it is. */
+export const notReadyReason = (s: PrinterStatus): string | null => {
+  if (!s.connected) {
+    return 'disconnected';
+  }
+  if (s.paperOut) {
+    return 'paper-out';
+  }
+  if (s.coverOpen) {
+    return 'cover-open';
+  }
+  if (s.error) {
+    return 'error';
+  }
+  if (!s.online) {
+    return 'offline';
+  }
+
+  return null;
+};
+
+export const JobKind = z.enum(['receiptline', 'text', 'image', 'raw', 'template']);
+export type JobKind = z.infer<typeof JobKind>;
+
+export const JobStatus = z.enum(['queued', 'printing', 'printed', 'failed', 'cancelled']);
+export type JobStatus = z.infer<typeof JobStatus>;
+
+export const Job = z.object({
+  id: z.string(),
+  kind: JobKind,
+  status: JobStatus,
+  /** ReceiptLine source (or text); null for raw/image */
+  source: z.string().nullable(),
+  error: z.string().nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+export type Job = z.infer<typeof Job>;
+
+export type ServerEvent =
+  | { type: 'printer'; status: PrinterStatus; waiting: string | null }
+  | { type: 'job'; job: Job };
+
+export type JobCounts = Record<JobStatus, number>;
+
+/** GET /status */
+export type StatusResponse = {
+  printer: PrinterStatus;
+  /** Why the head job is waiting (e.g. 'paper-out'), or null when it isn't */
+  waiting: string | null;
+  queue: JobCounts;
+};
+
+/** POST /print, /print/raw, /jobs/:id/reprint */
+export type PrintRequest = { doc: string };

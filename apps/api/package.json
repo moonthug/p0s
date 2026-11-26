@@ -1,0 +1,40 @@
+{
+  "name": "@p0s/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:hardware": "tsx scripts/testPrint.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.11",
+    "@hono/zod-validator": "^0.9.1",
+    "@inferdi/hono": "^6.1.1",
+    "@inferdi/inferdi": "^6.1.1",
+    "@p0s/shared": "workspace:*",
+    "@sidequest/sqlite-backend": "^1.17.0",
+    "async-mutex": "^0.5.0",
+    "better-sqlite3": "^13.2.0",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.22",
+    "mustache": "^4.2.0",
+    "receiptline": "^4.0.4",
+    "sharp": "^0.35.5",
+    "sidequest": "^1.17.0",
+    "usb": "^2.19.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/mustache": "^4.2.6",
+    "@types/node": "^26.6.10",
+    "drizzle-kit": "^0.31.11"
+  }
+}

@@ -1,0 +1,3 @@
+services:
+  # api + web services are added with their Dockerfiles.
+  # No Redis: the job queue (Sidequest) lives in the API's SQLite file.

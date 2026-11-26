@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: false;
+}
+
+/* Colours are taken from the printer itself: grey plastic, thermal paper, and the three front-panel LEDs. */
+@plugin "daisyui/theme" {
+  name: "p0s";
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: #f1f3f5;
+  --color-base-200: #e4e7eb;
+  --color-base-300: #d3d8de;
+  --color-base-content: #1c2533;
+
+  --color-primary: #2a57a5;
+  --color-primary-content: #ffffff;
+  --color-secondary: #5b6778;
+  --color-secondary-content: #ffffff;
+  --color-accent: #2a57a5;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1c2533;
+  --color-neutral-content: #f1f3f5;
+
+  --color-info: #2a57a5;
+  --color-info-content: #ffffff;
+  --color-success: #22b573;
+  --color-success-content: #06291a;
+  --color-warning: #f2a516;
+  --color-warning-content: #3a2500;
+  --color-error: #e5484d;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #fcfcfa;
+  --color-slot: #1c2533;
+}
+
+/* Plain variables, not @theme: Tailwind drops theme values no utility uses, and these are only read via var(). */
+:root {
+  --led-power: #22b573;
+  --led-error: #e5484d;
+  --led-paper: #f2a516;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-base-200 text-base-content font-sans antialiased;
+}
+
+/* A lit LED: solid colour with a soft glow of the same hue. Unlit LEDs are flat grey. */
+.led {
+  @apply inline-block size-3 rounded-full bg-base-300 shadow-inner;
+}
+
+.led[data-on="true"] {
+  background: var(--led);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--led), black 25%),
+    0 0 10px 1px color-mix(in oklab, var(--led), transparent 40%);
+}
+
+.led[data-blink="true"] {
+  animation: led-blink 1s steps(2, jump-none) infinite;
+}
+
+@keyframes led-blink {
+  50% {
+    background: var(--color-base-300);
+    box-shadow: none;
+  }
+}
+
+/* The paper strip is fed out of the slot once, when a preview first appears. */
+.paper-feed {
+  animation: paper-feed 450ms ease-out;
+}
+
+@keyframes paper-feed {
+  /* Negative insets leave room for the drop shadow once the strip is fully out. */
+  from {
+    clip-path: inset(0 -24px 100% -24px);
+  }
+  to {
+    clip-path: inset(0 -24px -24px -24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .led[data-blink="true"],
+  .paper-feed {
+    animation: none;
+  }
+}

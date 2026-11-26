@@ -1,0 +1,8 @@
+// A file declaring a class must be named after it: class HttpError lives in HttpError.ts.
+language js
+
+JsClassDeclaration(id=$name) where {
+  $filename <: r".*/([^/]+)\.tsx?$"($base),
+  not $base <: $name,
+  register_diagnostic(span=$name, message="Name this file after its class, e.g. class HttpError in HttpError.ts.")
+}
