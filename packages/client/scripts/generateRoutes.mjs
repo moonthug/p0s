@@ -16,7 +16,14 @@ const out = mkdtempSync(join(tmpdir(), 'p0s-routes-'));
 try {
   execFileSync(
     join(root, 'node_modules/.bin/tsc'),
-    ['-p', 'apps/api', '--noEmit', 'false', '--declaration', '--emitDeclarationOnly', '--outDir', out],
+    [
+      ...['-p', 'apps/api', '--noEmit', 'false', '--declaration', '--emitDeclarationOnly', '--outDir', out],
+      // TypeScript 7 checks in parallel, so the order of union members depends on the machine's core count, and the
+      // output would differ between a laptop and CI. Stable ordering alone still varied at high checker counts;
+      // single-threaded is the same everywhere, and this file is small enough that speed doesn't matter.
+      '--stableTypeOrdering',
+      '--singleThreaded',
+    ],
     { cwd: root, stdio: 'inherit' },
   );
 
