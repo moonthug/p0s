@@ -1,6 +1,6 @@
-import type { TemplateVars } from '@p0s/shared';
+import type { ImageUploadOptions } from '@moonthug/p0s-client';
 
-import type { ImageUploadOptions } from './ApiClient';
+import type { TemplateVars } from '@p0s/shared';
 
 /** Identifies an uploaded file in a query key (File objects don't serialise). */
 export const fileKey = (file: File) => `${file.name}:${file.size}:${file.lastModified}`;

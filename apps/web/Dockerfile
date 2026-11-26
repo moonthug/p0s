@@ -9,13 +9,13 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
-# The web build type-checks the API's routes (for the typed client) but never runs them,
-# so the API's native modules don't need to build here.
+COPY packages/client/package.json packages/client/
+# Nothing the web app needs runs install scripts (no native modules).
 RUN pnpm install --frozen-lockfile --filter @p0s/web... --ignore-scripts
 
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
-COPY apps/api apps/api
+COPY packages/client packages/client
 COPY apps/web apps/web
 RUN pnpm --filter @p0s/web build
 

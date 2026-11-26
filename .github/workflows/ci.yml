@@ -30,6 +30,16 @@ jobs:
       # Native modules (usb, better-sqlite3, sharp) are allowed to build via allowBuilds in pnpm-workspace.yaml.
       - run: pnpm install --frozen-lockfile
 
+      # The client ships a copy of the API's route types. If a route changed without regenerating it, fail here
+      # rather than publish a client that disagrees with the server.
+      - name: Client route types are up to date
+        run: |
+          pnpm --filter @moonthug/p0s-client generate
+          git diff --exit-code packages/client/src/generated || {
+            echo "::error::Route types are stale. Run: pnpm --filter @moonthug/p0s-client generate"
+            exit 1
+          }
+
       - name: Lint and format
         run: pnpm exec biome ci .
 
@@ -126,3 +136,51 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.app }}
+
+  publish-client:
+    name: Publish @moonthug/p0s-client
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      # registry-url writes an .npmrc that authenticates GitHub Packages with NODE_AUTH_TOKEN.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: "@moonthug"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Publishing is driven by the version in packages/client/package.json: bump it to release.
+      - name: Is this version already published?
+        id: version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./packages/client/package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if npm view "@moonthug/p0s-client@$version" version > /dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "@moonthug/p0s-client@$version is already published; bump the version to release."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # prepack builds dist; pnpm applies publishConfig (registry, and exports pointing at dist).
+      - name: Publish
+        if: steps.version.outputs.published == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm --filter @moonthug/p0s-client publish --no-git-checks

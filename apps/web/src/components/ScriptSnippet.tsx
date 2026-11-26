@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import type { TemplateVars } from '@p0s/shared';
 
-import { api } from '../api/ApiClient';
+import { api } from '../api/api';
 
 type ScriptSnippetProps = { name: string; vars: TemplateVars };
 

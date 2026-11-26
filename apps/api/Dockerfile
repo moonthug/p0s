@@ -18,6 +18,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
+COPY packages/client/package.json packages/client/
 RUN pnpm install --frozen-lockfile --prod --filter @p0s/api...
 
 FROM node:24-slim

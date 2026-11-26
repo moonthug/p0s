@@ -1,6 +1,6 @@
 import { ExternalLink } from 'lucide-react';
 
-import { api } from '../api/ApiClient';
+import { api } from '../api/api';
 
 /** The API's own Swagger UI (generated from its routes), shown inside the app. */
 export function ApiDocsPage() {

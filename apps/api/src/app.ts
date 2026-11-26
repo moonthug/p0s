@@ -6,7 +6,7 @@ import { openAPIRouteHandler } from 'hono-openapi';
 
 import type { AppContainer } from './container';
 import { ImageTooLongError } from './images/ImageTooLongError';
-import { eventRoutes, jobRoutes, previewRoutes, printRoutes, statusRoutes, templateRoutes } from './routes';
+import { apiRoutes } from './routes/api';
 import { validationErrorResponse } from './routes/openapi';
 import { TemplateSyntaxError } from './templates/TemplateSyntaxError';
 
@@ -28,12 +28,7 @@ export const createApp = (container: AppContainer) => {
 
       return c.json({ error: err.message }, 500);
     })
-    .route('/status', statusRoutes)
-    .route('/print', printRoutes)
-    .route('/preview', previewRoutes)
-    .route('/jobs', jobRoutes)
-    .route('/templates', templateRoutes)
-    .route('/events', eventRoutes);
+    .route('/', apiRoutes);
 
   // Docs are added after the chain: they're for people, not part of the typed RPC surface.
   // Both URLs are relative, so they work directly (:3300/docs) and behind the /api proxy (/api/docs).
@@ -57,5 +52,4 @@ export const createApp = (container: AppContainer) => {
   return app;
 };
 
-/** The route tree's type, for the web app's `hc<AppType>` client. */
-export type AppType = ReturnType<typeof createApp>;
+export type { AppType } from './routes/api';

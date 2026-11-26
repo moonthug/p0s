@@ -1,8 +1,9 @@
+import type { ImageUploadOptions, TemplateInput } from '@moonthug/p0s-client';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { TemplateVars } from '@p0s/shared';
 
-import { api, type ImageUploadOptions, type TemplateInput } from '../api/ApiClient';
+import { api } from '../api/api';
 import { queryKeys } from '../api/queryKeys';
 
 /** Previews keep the last result on screen while the next one renders, and never go stale on their own. */

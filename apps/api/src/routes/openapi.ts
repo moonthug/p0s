@@ -1,28 +1,31 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { ValidationTargets } from 'hono';
-import { resolver, validator } from 'hono-openapi';
+import { type DescribeRouteOptions, resolver, validator } from 'hono-openapi';
 import type { z } from 'zod';
 
 import { ApiErrorBody } from '@p0s/shared';
 
 /** OpenAPI response helpers, so each route's `describeRoute` stays short. */
 
-export const jsonResponse = (schema: z.ZodType, description: string) => ({
+/** One documented response. Named so declarations don't reach into hono-openapi's internal dependencies. */
+type RouteResponse = NonNullable<DescribeRouteOptions['responses']>[string];
+
+export const jsonResponse = (schema: z.ZodType, description: string): RouteResponse => ({
   description,
   content: { 'application/json': { schema: resolver(schema) } },
 });
 
-export const svgResponse = (description: string) => ({
+export const svgResponse = (description: string): RouteResponse => ({
   description,
   content: { 'image/svg+xml': { schema: { type: 'string' as const } } },
 });
 
-export const sseResponse = (description: string) => ({
+export const sseResponse = (description: string): RouteResponse => ({
   description,
   content: { 'text/event-stream': { schema: { type: 'string' as const } } },
 });
 
-export const errorResponse = (description: string) => jsonResponse(ApiErrorBody, description);
+export const errorResponse = (description: string): RouteResponse => jsonResponse(ApiErrorBody, description);
 
 /**
  * hono-openapi's validator (so the schema is documented), answering a bad request with the API's usual

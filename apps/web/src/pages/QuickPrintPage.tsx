@@ -1,10 +1,13 @@
+import type { ImageUploadOptions } from '@moonthug/p0s-client';
 import { RotateCw } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDebounceValue } from 'usehooks-ts';
 
 import type { ImageMode } from '@p0s/shared';
 
-import type { ImageUploadOptions } from '../api/ApiClient';
+/** The page always has every setting chosen; the client lets scripts leave them to the API's defaults. */
+type ImageSettings = Required<Omit<ImageUploadOptions, 'force'>>;
+
 import { ImageDrop } from '../components/ImageDrop';
 import { Paper } from '../components/Paper';
 import { PrintBar } from '../components/PrintBar';
@@ -26,14 +29,14 @@ const MODE_RESULT: Record<Exclude<ImageMode, 'auto'>, string> = {
 /** Quick print: drop in an image and print it. */
 export function QuickPrintPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [options, setOptions] = useState<ImageUploadOptions>({ mode: 'auto', width: 100, rotate: 0 });
-  const [debouncedOptions] = useDebounceValue<ImageUploadOptions>(options, 250);
+  const [options, setOptions] = useState<ImageSettings>({ mode: 'auto', width: 100, rotate: 0 });
+  const [debouncedOptions] = useDebounceValue<ImageSettings>(options, 250);
 
   const preview = useImagePreview(file, debouncedOptions);
   const print = usePrintImage();
   const progress = useJobProgress();
 
-  const set = useCallback((patch: Partial<ImageUploadOptions>) => setOptions((o) => ({ ...o, ...patch })), []);
+  const set = useCallback((patch: Partial<ImageSettings>) => setOptions((o) => ({ ...o, ...patch })), []);
   const send = (force: boolean) =>
     file && print.mutate({ file, options: { ...options, force } }, { onSuccess: progress.track });
 
@@ -78,7 +81,7 @@ export function QuickPrintPage() {
           <button
             type="button"
             className="btn btn-sm"
-            onClick={() => set({ rotate: ((options.rotate + 90) % 360) as ImageUploadOptions['rotate'] })}
+            onClick={() => set({ rotate: ((options.rotate + 90) % 360) as ImageSettings['rotate'] })}
           >
             <RotateCw className="size-4" aria-hidden="true" />
             Rotate

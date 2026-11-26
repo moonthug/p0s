@@ -12,6 +12,7 @@ pnpm test                         # Vitest: API (unit, queue, HTTP) + web; no ha
 pnpm lint / pnpm format           # biome check / biome check --write
 pnpm --filter @p0s/api test:hardware   # calibration receipt on the real printer (never in CI)
 pnpm --filter @p0s/api db:seed        # one-shot: add the starter templates (skips existing ones)
+pnpm --filter @moonthug/p0s-client generate   # after changing routes: refresh the client's route types
 ```
 
 The API reads `apps/api/.env` (copy `.env.example`). `PRINTER=fake` runs without the hardware.
@@ -37,10 +38,14 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   `/openapi.json` and shown with Swagger UI at `/docs` (the web app's API page embeds it; its assets load from
   the jsDelivr CDN). Work that outlives
   the request (SSE) must resolve its services before the handler returns: the request scope is disposed then.
-- **The web app talks to the API through `ApiClient`** (`apps/web/src/api`), a class over Hono RPC
-  (`hc<AppType>` + `parseResponse`): requests and responses are typed from the API's own routes, so changing a
-  route breaks the web build. Keep controller routes chained so `AppType` carries them. Live updates come from
-  `ServerEvents`, which writes SSE events straight into the TanStack Query cache.
+- **The API client is `@moonthug/p0s-client`** (`packages/client`): `P0sClient`, a class over Hono RPC
+  (`hc<AppType>` + `parseResponse`), used by the web app and published to GitHub Packages for scripts.
+  `AppType` is the type of `apiRoutes` (`apps/api/src/routes/api.ts`): a plain `new Hono()` route tree, so its type
+  carries only route inputs/outputs and references nothing but `hono`. The client keeps a generated copy in
+  `src/generated/routes.ts`. **After changing any route, run `pnpm --filter @moonthug/p0s-client generate`**; CI
+  fails if it's stale. Keep middleware out of `apiRoutes` (add it in `createApp`), or `AppType` drags in server
+  types. To release the client, bump its `version`: CI publishes any version not yet on GitHub Packages. Live
+  updates come from `ServerEvents` in the web app, which writes SSE events straight into the TanStack Query cache.
 - **A class lives in a file named after it** (`class PrintQueue` → `PrintQueue.ts`), enforced by the
   `biome-plugins/class-filename.grit` plugin. Other files are camelCase.
 - **Relative imports, no path aliases.** The web app type-checks the API's source for `hc<AppType>`, and a

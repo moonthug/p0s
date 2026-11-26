@@ -4,7 +4,7 @@ import { Link, useLocation } from 'wouter';
 
 import type { TemplateVars } from '@p0s/shared';
 
-import { api } from '../api/ApiClient';
+import { api } from '../api/api';
 import { Paper } from '../components/Paper';
 import { usePreview, useTemplateDraftPreview } from '../hooks/queries';
 import { errorMessage } from '../lib/errors';

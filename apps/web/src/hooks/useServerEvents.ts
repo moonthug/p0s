@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
-import { api } from '../api/ApiClient';
+import { api } from '../api/api';
 import { ServerEvents } from '../api/ServerEvents';
 
 /** Opens the SSE stream for the app's lifetime. Returns whether it's currently connected. */

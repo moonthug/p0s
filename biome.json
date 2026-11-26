@@ -9,7 +9,8 @@
       "!apps/api/drizzle",
       "!.claude",
       "!pnpm-lock.yaml",
-      "!.playwright-mcp"
+      "!.playwright-mcp",
+      "!packages/client/src/generated"
     ]
   },
   "formatter": {
