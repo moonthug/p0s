@@ -56,5 +56,12 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   Sidequest is a process-wide singleton, so API test files run one at a time, and Vitest inlines Sidequest so its
   `import()` of `PrintJob` shares the test's module instance. `ReceiptRenderer.test.ts` snapshots ESC/POS bytes:
   if it changes after a ReceiptLine upgrade, check a real print before updating the snapshot.
-- **CI** (`.github/workflows/ci.yml`): `biome ci`, typecheck, tests and the web build on every push and PR.
+- **CI** (`.github/workflows/ci.yml`): `biome ci`, typecheck, tests and the web build on every push and PR. Then each
+  Docker image is built for arm64 (Raspberry Pi) on a native ARM runner, smoke-tested (the API with `PRINTER=fake`), and on `main` pushed to
+  `ghcr.io/moonthug/p0s-api` / `p0s-web` as `latest` and `sha-<commit>`.
+- **Docker**: `apps/api/Dockerfile` (node:24-slim, glibc for the native modules; runs the TS source with tsx because
+  Sidequest loads `PrintJob.ts` by path, so `tsx` is a runtime dependency) and `apps/web/Dockerfile` (Vite build →
+  nginx, which proxies `/api/` to `API_UPSTREAM` with SSE buffering off). `docker-compose.yml` is for the Linux home
+  lab: it bind-mounts `/dev/bus/usb` with a cgroup rule for USB (char major 189) so replugging the printer works.
+  Both build from the repo root.
 - Keep comments minimal; explain _why_, not _what_.

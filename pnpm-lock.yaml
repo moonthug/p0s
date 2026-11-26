@@ -235,6 +235,9 @@ importers:
       sidequest:
         specifier: ^1.17.0
         version: 1.17.0(better-sqlite3@13.2.0)
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       usb:
         specifier: ^2.19.2
         version: 2.19.2

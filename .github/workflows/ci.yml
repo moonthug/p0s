@@ -42,3 +42,87 @@ jobs:
 
       - name: Build web
         run: pnpm --filter @p0s/web build
+
+  docker:
+    name: Docker image (${{ matrix.app }})
+    needs: check
+    # The images run on a Raspberry Pi: build and smoke-test them natively on GitHub's ARM runners (no emulation).
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        app: [api, web]
+
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/p0s-${{ matrix.app }}
+      # Only main publishes; pull requests just prove the image builds and starts.
+      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+
+      # Build once into the local daemon so it can be started before anything is published.
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          platforms: linux/arm64
+          load: true
+          tags: p0s-${{ matrix.app }}:ci
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+      # The API's native modules (usb, better-sqlite3, sharp) only show problems when the image starts.
+      - name: Smoke test
+        run: |
+          if [ "${{ matrix.app }}" = "api" ]; then
+            docker run -d --name smoke -p 3000:3000 -e PRINTER=fake p0s-api:ci
+            url=http://localhost:3000/status
+          else
+            docker run -d --name smoke -p 8080:80 --add-host api:127.0.0.1 p0s-web:ci
+            url=http://localhost:8080/
+          fi
+
+          for i in $(seq 1 30); do
+            if curl -fsS "$url" > /dev/null; then echo "ok: $url"; exit 0; fi
+            sleep 1
+          done
+
+          docker logs smoke
+          exit 1
+
+      - name: Log in to GHCR
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same build again from the cache, now tagged and pushed.
+      - name: Publish
+        if: env.PUBLISH == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.app }}

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
-    "start": "tsx src/index.ts",
+    "start": "node --import tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:hardware": "tsx scripts/testPrint.ts",
@@ -31,6 +31,7 @@
     "receiptline": "^4.0.4",
     "sharp": "^0.35.5",
     "sidequest": "^1.17.0",
+    "tsx": "^4.23.15",
     "usb": "^2.19.2",
     "zod": "^4.6.7"
   },

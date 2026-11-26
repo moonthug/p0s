@@ -1,3 +1,43 @@
+# p0s on the home lab: a Raspberry Pi running a 64-bit OS (the images are linux/arm64).
+# Needs a Linux host: USB passthrough doesn't work in Docker Desktop on macOS.
+#
+#   docker compose pull && docker compose up -d     # run the images CI publishes to GHCR
+#   docker compose up -d --build                    # or build them from this checkout
+#
+# Then open http://<host>:8080. Scripts can call the API at http://<host>:8080/api.
+# No Redis or database server: jobs, templates and the queue all live in SQLite on the p0s-data volume.
+
 services:
-  # api + web services are added with their Dockerfiles.
-  # No Redis: the job queue (Sidequest) lives in the API's SQLite file.
+  api:
+    image: ghcr.io/moonthug/p0s-api:latest
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      PRINTER: usb
+      # Seconds a job waits for the printer (out of paper, cover open) before it's given up on.
+      JOB_MAX_WAIT: 600
+      # Set to e.g. 8678 and publish the port to see Sidequest's queue dashboard.
+      QUEUE_DASHBOARD_PORT: 0
+    volumes:
+      - p0s-data:/data
+      # The whole USB bus, plus permission for USB devices (char major 189), so the printer keeps working
+      # when it's unplugged and plugged back in. A fixed `devices:` entry would go stale.
+      - /dev/bus/usb:/dev/bus/usb
+    device_cgroup_rules:
+      - "c 189:* rmw"
+
+  web:
+    image: ghcr.io/moonthug/p0s-web:latest
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  p0s-data:
