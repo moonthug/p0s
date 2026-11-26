@@ -6,6 +6,7 @@ import { openAPIRouteHandler } from 'hono-openapi';
 
 import type { AppContainer } from './container';
 import { ImageTooLongError } from './images/ImageTooLongError';
+import { corsFor } from './middleware/cors';
 import { apiRoutes } from './routes/api';
 import { validationErrorResponse } from './routes/openapi';
 import { TemplateSyntaxError } from './templates/TemplateSyntaxError';
@@ -14,6 +15,7 @@ import { TemplateSyntaxError } from './templates/TemplateSyntaxError';
 export const createApp = (container: AppContainer) => {
   const app = new Hono()
     .use(logger())
+    .use(corsFor(container.get('config').CORS_ORIGINS))
     .use(inferdiHono({ container }))
     .onError((err, c) => {
       if (err instanceof ImageTooLongError) {

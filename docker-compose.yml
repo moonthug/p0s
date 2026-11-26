@@ -4,8 +4,12 @@
 #   docker compose pull && docker compose up -d     # run the images CI publishes to GHCR
 #   docker compose up -d --build                    # or build them from this checkout
 #
-# Then open http://<host>:8080. Scripts can call the API at http://<host>:8080/api.
+# Then open https://<host> (or plain http://<host>:8080). Scripts can call the API at https://<host>/api.
 # No Redis or database server: jobs, templates and the queue all live in SQLite on the p0s-data volume.
+#
+# Settings go in a .env file next to this one:
+#   P0S_HOST=berry.local     # the name the HTTPS certificate is issued for
+#   P0S_CORS_ORIGINS=*       # websites allowed to call the API from a browser: * for any, or a comma list
 
 services:
   api:
@@ -20,6 +24,7 @@ services:
       JOB_MAX_WAIT: 600
       # Set to e.g. 8678 and publish the port to see Sidequest's queue dashboard.
       QUEUE_DASHBOARD_PORT: 0
+      CORS_ORIGINS: ${P0S_CORS_ORIGINS:-}
     volumes:
       - p0s-data:/data
       # The whole USB bus, plus permission for USB devices (char major 189), so the printer keeps working
@@ -34,10 +39,47 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     restart: unless-stopped
+    # Plain HTTP stays available for scripts on the LAN; browsers should use HTTPS through Caddy.
     ports:
       - "8080:80"
     depends_on:
       - api
 
+  # HTTPS in front of the web app. A .local name can't get a public certificate, so Caddy runs its own certificate
+  # authority ("tls internal"). Each device trusts its root certificate once:
+  #   docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt > p0s-root.crt
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80" # redirects to HTTPS
+      - "443:443"
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      # Keep the certificate authority: if it changed, every device would have to trust a new one.
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+
+configs:
+  caddyfile:
+    content: |
+      {
+        # The CA lives in the container; there's no system trust store to install it into.
+        skip_install_trust
+      }
+
+      ${P0S_HOST:-berry.local} {
+        tls internal
+        encode gzip
+        # Caddy streams server-sent events (/api/events) without buffering.
+        reverse_proxy web:80
+      }
+
 volumes:
   p0s-data:
+  caddy-data:
+  caddy-config:

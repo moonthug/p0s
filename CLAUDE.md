@@ -69,4 +69,9 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   nginx, which proxies `/api/` to `API_UPSTREAM` with SSE buffering off). `docker-compose.yml` is for the Linux home
   lab: it bind-mounts `/dev/bus/usb` with a cgroup rule for USB (char major 189) so replugging the printer works.
   Both build from the repo root.
+- **HTTPS and CORS** (both in `docker-compose.yml`): a Caddy service serves `https://${P0S_HOST}` (default
+  `berry.local`) with its own local CA (`tls internal`; devices trust its root once, see the compose comments), with
+  the Caddyfile inline via `configs:`. Browser calls from other sites are allowed only for origins in
+  `P0S_CORS_ORIGINS` (→ API `CORS_ORIGINS`), via `src/middleware/cors.ts`, which also answers Chrome's
+  private-network preflight. Both are set in a `.env` beside the compose file.
 - Keep comments minimal; explain _why_, not _what_.

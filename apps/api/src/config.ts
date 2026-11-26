@@ -12,6 +12,16 @@ const Env = z.object({
   /** Seconds a job may wait in the queue before it expires */
   JOB_MAX_WAIT: z.coerce.number().default(600),
   ENCODING: z.string().default('cp858'),
+  /** Web origins allowed to call the API from a browser: comma-separated, `*` for any. Empty: none. */
+  CORS_ORIGINS: z
+    .string()
+    .default('')
+    .transform((list) =>
+      list
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    ),
 });
 
 export type Config = z.infer<typeof Env>;
