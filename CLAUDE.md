@@ -29,7 +29,12 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   `container.dispose()` shuts everything down in reverse creation order.
 - **The HTTP layer is functions, not classes.** `createApp(container)` in `src/app.ts` adds the `@inferdi/hono`
   middleware, then mounts one controller per area from `src/routes/` (`statusRoutes`, `printRoutes`, …). Each
-  controller is a `Hono<AppEnv>` sub-app that gets services with `c.var.di.get('printQueue')`. Work that outlives
+  controller is a `Hono<AppEnv>` sub-app that gets services with `c.var.di.get('printQueue')`.
+- **Every route is documented.** Give it a `describeRoute({ tags, summary, responses })` and validate input with
+  `validate()` from `src/routes/openapi.ts` (hono-openapi's validator, answering failures as `{ error }`), never
+  `zValidator`. Response shapes are zod schemas in `@p0s/shared` with a `.meta({ id })`. The spec is generated at
+  `/openapi.json` and shown with Swagger UI at `/docs` (the web app's API page embeds it; its assets load from
+  the jsDelivr CDN). Work that outlives
   the request (SSE) must resolve its services before the handler returns: the request scope is disposed then.
 - **The web app talks to the API through `ApiClient`** (`apps/web/src/api`), a class over Hono RPC
   (`hc<AppType>` + `parseResponse`): requests and responses are typed from the API's own routes, so changing a

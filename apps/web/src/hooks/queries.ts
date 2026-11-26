@@ -20,14 +20,6 @@ export const usePreview = (doc: string) =>
     ...previewOptions,
   });
 
-export const useTextPreview = (text: string) =>
-  useQuery({
-    queryKey: queryKeys.textPreview(text),
-    queryFn: ({ signal }) => api.previewText(text, signal),
-    enabled: text.trim().length > 0,
-    ...previewOptions,
-  });
-
 export const useImagePreview = (file: File | null, options: ImageUploadOptions) =>
   useQuery({
     queryKey: file ? queryKeys.imagePreview(file, options) : ['preview', 'image', 'none'],
@@ -56,8 +48,6 @@ export const useTemplateDraftPreview = (body: string, vars: TemplateVars) =>
 
 // Job updates arrive over SSE, so print mutations don't need to invalidate anything.
 export const usePrint = () => useMutation({ mutationFn: (doc: string) => api.print(doc) });
-
-export const usePrintText = () => useMutation({ mutationFn: (text: string) => api.printText(text) });
 
 export const usePrintImage = () =>
   useMutation({

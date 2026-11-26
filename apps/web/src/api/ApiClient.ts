@@ -64,14 +64,6 @@ export class ApiClient {
     return this.call(this.client.preview.$post({ json: { doc } }, { init: { signal } }));
   }
 
-  printText(text: string) {
-    return this.call(this.client.print.text.$post({ json: { text } }));
-  }
-
-  previewText(text: string, signal?: AbortSignal): Promise<string> {
-    return this.call(this.client.preview.text.$post({ json: { text } }, { init: { signal } }));
-  }
-
   printImage(image: File, options: ImageUploadOptions) {
     return this.call(this.client.print.image.$post({ form: imageForm(image, options) }));
   }

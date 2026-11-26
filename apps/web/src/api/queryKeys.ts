@@ -9,7 +9,6 @@ export const queryKeys = {
   status: ['status'] as const,
   jobs: ['jobs'] as const,
   preview: (doc: string) => ['preview', doc] as const,
-  textPreview: (text: string) => ['preview', 'text', text] as const,
   imagePreview: (file: File, options: ImageUploadOptions) => ['preview', 'image', fileKey(file), options] as const,
   templates: ['templates'] as const,
   template: (name: string) => ['templates', name] as const,

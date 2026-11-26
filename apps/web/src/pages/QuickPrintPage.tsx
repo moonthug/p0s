@@ -1,6 +1,6 @@
 import { RotateCw } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useDebounceValue, useLocalStorage } from 'usehooks-ts';
+import { useDebounceValue } from 'usehooks-ts';
 
 import type { ImageMode } from '@p0s/shared';
 
@@ -8,11 +8,9 @@ import type { ImageUploadOptions } from '../api/ApiClient';
 import { ImageDrop } from '../components/ImageDrop';
 import { Paper } from '../components/Paper';
 import { PrintBar } from '../components/PrintBar';
-import { useImagePreview, usePrintImage, usePrintText, useTextPreview } from '../hooks/queries';
+import { useImagePreview, usePrintImage } from '../hooks/queries';
 import { useJobProgress } from '../hooks/useJobProgress';
 import { errorMessage } from '../lib/errors';
-
-type Tab = 'text' | 'image';
 
 const MODES: { value: ImageMode; label: string }[] = [
   { value: 'auto', label: 'Auto' },
@@ -25,46 +23,8 @@ const MODE_RESULT: Record<Exclude<ImageMode, 'auto'>, string> = {
   line: 'Printed as line art: pure black and white, sharp edges.',
 };
 
-function TextPanel() {
-  const [text, setText] = useLocalStorage<string>('p0s:quick-text', '');
-  const [debounced] = useDebounceValue<string>(text, 300);
-
-  const preview = useTextPreview(debounced);
-  const print = usePrintText();
-  const progress = useJobProgress();
-
-  return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_480px]">
-      <section className="flex min-w-0 flex-col gap-4">
-        <textarea
-          className="textarea min-h-80 w-full font-mono text-[0.9375rem]"
-          placeholder="Type or paste anything. It prints exactly as written."
-          aria-label="Text to print"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-
-        <PrintBar
-          onPrint={() => print.mutate(text, { onSuccess: progress.track })}
-          disabled={!text.trim()}
-          pending={print.isPending}
-          error={print.error}
-          message={progress.message}
-        />
-
-        <p className="max-w-prose text-sm text-secondary">
-          Lines wrap at 48 characters. Emoji are left out: the printer has no way to draw them.
-        </p>
-      </section>
-
-      <section aria-label="Preview" className="lg:sticky lg:top-6 lg:self-start lg:pt-2">
-        <Paper svg={preview.data} loading={preview.isFetching} error={errorMessage(preview.error, 'Preview failed')} />
-      </section>
-    </div>
-  );
-}
-
-function ImagePanel() {
+/** Quick print: drop in an image and print it. */
+export function QuickPrintPage() {
   const [file, setFile] = useState<File | null>(null);
   const [options, setOptions] = useState<ImageUploadOptions>({ mode: 'auto', width: 100, rotate: 0 });
   const [debouncedOptions] = useDebounceValue<ImageUploadOptions>(options, 250);
@@ -154,37 +114,6 @@ function ImagePanel() {
           empty="Choose an image to see how it will print."
         />
       </section>
-    </div>
-  );
-}
-
-export function QuickPrintPage() {
-  const [tab, setTab] = useState<Tab>('text');
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div role="tablist" className="tabs tabs-box w-fit">
-        <button
-          type="button"
-          role="tab"
-          className={`tab ${tab === 'text' ? 'tab-active' : ''}`}
-          aria-selected={tab === 'text'}
-          onClick={() => setTab('text')}
-        >
-          Text
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className={`tab ${tab === 'image' ? 'tab-active' : ''}`}
-          aria-selected={tab === 'image'}
-          onClick={() => setTab('image')}
-        >
-          Image
-        </button>
-      </div>
-
-      {tab === 'text' ? <TextPanel /> : <ImagePanel />}
     </div>
   );
 }

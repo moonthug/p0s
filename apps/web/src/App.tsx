@@ -2,6 +2,7 @@ import { Route, Switch } from 'wouter';
 
 import { Header } from './components/Header';
 import { useServerEvents } from './hooks/useServerEvents';
+import { ApiDocsPage } from './pages/ApiDocsPage';
 import { ComposePage } from './pages/ComposePage';
 import { JobsPage } from './pages/JobsPage';
 import { QuickPrintPage } from './pages/QuickPrintPage';
@@ -25,6 +26,7 @@ export function App() {
           </Route>
           <Route path="/templates/:name">{({ name }) => <TemplateEditorPage key={name} name={name} />}</Route>
           <Route path="/jobs" component={JobsPage} />
+          <Route path="/docs" component={ApiDocsPage} />
           <Route>
             <p className="text-secondary">There's nothing at this address.</p>
           </Route>

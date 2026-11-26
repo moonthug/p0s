@@ -10,10 +10,9 @@ export const TextBody = z.object({ text: z.string().min(1) });
 
 /** Multipart upload for /print/image and /preview/image. Form fields arrive as strings. */
 export const ImageForm = z.object({
-  image: z.instanceof(File),
-  mode: ImageMode.default('auto'),
-  /** Printed width, as a percentage of the paper width */
-  width: z.coerce.number().int().min(10).max(100).default(100),
+  image: z.file().describe('PNG, JPEG, WebP, GIF or HEIC'),
+  mode: ImageMode.default('auto').describe('auto picks photo (dithered) or line (thresholded)'),
+  width: z.coerce.number().int().min(10).max(100).default(100).describe('Printed width, as a percentage of the paper'),
   rotate: z.coerce
     .number()
     .pipe(z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]))

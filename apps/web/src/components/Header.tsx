@@ -9,6 +9,7 @@ const NAV = [
   { href: '/quick', label: 'Quick print' },
   { href: '/templates', label: 'Templates' },
   { href: '/jobs', label: 'Jobs' },
+  { href: '/docs', label: 'API' },
 ];
 
 export function Header({ reachable }: { reachable: boolean }) {
