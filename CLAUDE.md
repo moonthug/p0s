@@ -8,6 +8,7 @@ React web UI (`apps/web`). The full design is in [`docs/DESIGN.md`](docs/DESIGN.
 ```bash
 pnpm dev                          # API (tsx watch) + web
 pnpm typecheck                    # all packages
+pnpm test                         # Vitest: API (unit, queue, HTTP) + web; no hardware needed
 pnpm lint / pnpm format           # biome check / biome check --write
 pnpm --filter @p0s/api test:hardware   # calibration receipt on the real printer (never in CI)
 pnpm --filter @p0s/api db:seed        # one-shot: add the starter templates (skips existing ones)
@@ -51,4 +52,9 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   - a blank line before `return`, unless it's the first statement in its block;
   - a blank line after a block (`if`, `try`, loop) when more statements follow;
   - a blank line between the steps of a method (e.g. build the row → persist → enqueue → publish).
+- **Tests** live in each app's `test/`. API tests use `FakePrinter` and a temp SQLite file, never the USB printer.
+  Sidequest is a process-wide singleton, so API test files run one at a time, and Vitest inlines Sidequest so its
+  `import()` of `PrintJob` shares the test's module instance. `ReceiptRenderer.test.ts` snapshots ESC/POS bytes:
+  if it changes after a ReceiptLine upgrade, check a real print before updating the snapshot.
+- **CI** (`.github/workflows/ci.yml`): `biome ci`, typecheck, tests and the web build on every push and PR.
 - Keep comments minimal; explain _why_, not _what_.

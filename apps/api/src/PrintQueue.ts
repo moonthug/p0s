@@ -176,12 +176,16 @@ export class PrintQueue {
 
   private async process(id: string, signal: AbortSignal): Promise<string | null> {
     const row = this.row(id);
+
     if (row?.status !== 'queued') {
       return null; // cancelled, or a duplicate delivery
     }
 
+    // Our row is the source of truth for cancellation: Sidequest's abort doesn't reliably reach a running inline job.
+    const cancelled = () => signal.aborted || this.row(id)?.status !== 'queued';
+
     try {
-      await this.waitUntilReady(row.createdAt + this.options.maxWaitMs, signal);
+      await this.waitUntilReady(row.createdAt + this.options.maxWaitMs, cancelled);
     } catch (err) {
       const message = (err as Error).message;
       if (this.row(id)?.status === 'queued') {
@@ -191,6 +195,11 @@ export class PrintQueue {
       return message;
     } finally {
       this.setWaiting(null);
+    }
+
+    // Last check before any bytes go out: once they're sent, the job can't be taken back.
+    if (cancelled()) {
+      return null;
     }
 
     this.setStatus(id, 'printing');
@@ -208,11 +217,11 @@ export class PrintQueue {
     }
   }
 
-  private async waitUntilReady(deadline: number, signal: AbortSignal) {
+  private async waitUntilReady(deadline: number, cancelled: () => boolean) {
     const { printer } = this;
 
     while (!isReady(printer.status)) {
-      if (signal.aborted) {
+      if (cancelled()) {
         throw new Error('cancelled');
       }
 
