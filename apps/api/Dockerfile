@@ -27,6 +27,8 @@ WORKDIR /app
 COPY --from=deps /app /app
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
+# The MCP tools call the API in-process through the typed client.
+COPY packages/client packages/client
 COPY apps/api apps/api
 
 WORKDIR /app/apps/api

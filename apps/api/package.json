@@ -20,6 +20,8 @@
     "@hono/zod-validator": "^0.9.1",
     "@inferdi/hono": "^6.1.1",
     "@inferdi/inferdi": "^6.1.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@moonthug/p0s-client": "workspace:*",
     "@p0s/shared": "workspace:*",
     "@sidequest/sqlite-backend": "^1.17.0",
     "async-mutex": "^0.5.0",

@@ -46,6 +46,12 @@ Stop dev servers with `pkill -f "tsx/dist/cli.mjs watch"`: `pkill -f "tsx watch"
   fails if it's stale. Keep middleware out of `apiRoutes` (add it in `createApp`), or `AppType` drags in server
   types. To release the client, bump its `version`: CI publishes any version not yet on GitHub Packages. Live
   updates come from `ServerEvents` in the web app, which writes SSE events straight into the TanStack Query cache.
+- **MCP** is served at `/mcp` (Streamable HTTP, stateless, JSON responses), wired up in `createApp`. The tools in
+  `src/mcp/mcpServer.ts` call the API in-process through `P0sClient` (its `fetch` is `app.request`), so they share
+  the routes' validation and errors; `src/mcp/instructions.ts` teaches the model ReceiptLine and the template
+  syntax. Print tools wait up to 20 s for the job and say whether it printed or what the printer is waiting on.
+  Add a tool when you add a route worth exposing. Connect with
+  `claude mcp add --transport http p0s http://berry.local:8080/api/mcp`.
 - **A class lives in a file named after it** (`class PrintQueue` → `PrintQueue.ts`), enforced by the
   `biome-plugins/class-filename.grit` plugin. Other files are camelCase.
 - **Relative imports, no path aliases.** The web app type-checks the API's source for `hc<AppType>`, and a
