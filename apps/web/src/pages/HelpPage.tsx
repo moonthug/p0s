@@ -9,11 +9,13 @@ import { Paper } from '../components/Paper';
 import { usePreview, useTemplateDraftPreview } from '../hooks/queries';
 import { errorMessage } from '../lib/errors';
 import { RECEIPT_EXAMPLES, type ReceiptExample, TEMPLATE_EXAMPLES, type TemplateExample } from '../lib/helpExamples';
+import { MCP_PROMPTS, MCP_TOOLS, mcpSetup } from '../lib/mcpHelp';
 
 const SECTIONS = [
   { id: 'receipts', label: 'Writing receipts' },
   { id: 'templates', label: 'Templates' },
   { id: 'scripts', label: 'Printing from scripts' },
+  { id: 'assistants', label: 'AI assistants (MCP)' },
 ];
 
 function Code({ children }: { children: string }) {
@@ -224,6 +226,49 @@ export function HelpPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section id="assistants" className="scroll-mt-6">
+          <h2 className="text-2xl font-bold tracking-tight">AI assistants (MCP)</h2>
+          <p className="mt-3 max-w-prose text-secondary">
+            p0s is also an MCP server, so an AI assistant like Claude can print for you. Ask in your own words and it
+            writes the receipt, checks the preview, and tells you once it has printed, or what the printer is waiting
+            for. It already knows ReceiptLine and the template syntax.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-6">
+            {mcpSetup().map(({ title, description, code }) => (
+              <div key={title} className="flex flex-col gap-2">
+                <h3 className="font-semibold">{title}</h3>
+                <p className="max-w-prose text-sm text-secondary">{description}</p>
+                <Code>{code}</Code>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-6 max-w-prose text-sm text-secondary">
+            Claude on the web and in the phone app can’t use it: they connect from the internet, and p0s is only on your
+            home network. Anyone on the network can print through it, just as they can with this site.
+          </p>
+
+          <h3 className="mt-8 font-semibold">Things to ask</h3>
+          <ul className="mt-2 flex max-w-prose list-disc flex-col gap-1 pl-5 text-secondary">
+            {MCP_PROMPTS.map((prompt) => (
+              <li key={prompt}>{prompt}</li>
+            ))}
+          </ul>
+
+          <h3 className="mt-8 font-semibold">What it can do</h3>
+          <table className="table mt-2 max-w-prose">
+            <tbody>
+              {MCP_TOOLS.map(({ name, does }) => (
+                <tr key={name}>
+                  <td className="font-mono text-sm whitespace-nowrap">{name}</td>
+                  <td>{does}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </section>
       </div>
     </div>
